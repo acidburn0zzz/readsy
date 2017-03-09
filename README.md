@@ -8,19 +8,18 @@ Read stream wrapper that supports async initialization.
 npm install readsy
 ```
 
-### `var ws = readsy(init)`
+### `var rs = readsy(init)`
 
 ```js
 var readsy = require('readsy')
-...
 
 var readStream = readsy((cb) => {
   setTimeout(() => {
     cb(null, fs.createReadStream('/dev/urandom'))
   }, 100)
 })
-readStream.pipe(fs.createWriteStream('/dev/null'))
 
+readStream.pipe(fs.createWriteStream('/dev/null'))
 ```
 
 ## License
