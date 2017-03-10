@@ -8,7 +8,10 @@ Read stream wrapper that supports async initialization.
 npm install readsy
 ```
 
-### `var rs = readsy(init)`
+### `var rs = readsy(init, [opts])`
+### `var rs = readsy.obj(init, [opts])`
+
+Wraps a new readable stream (or object stream) by passing `init` callback function.
 
 ```js
 var readsy = require('readsy')
