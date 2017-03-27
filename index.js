@@ -24,8 +24,20 @@ var destroy = (stream) => { // from pump destoryer
 
 function Readsy (init, opts) {
   if (!(this instanceof Readsy)) return new Readsy(init, opts)
-  stream.Readable.call(this, opts)
   this.destroyed = false
+
+  this._drained = true
+  this._forwarding = false
+
+  if (isFn(init)) this._init = init
+  else if (init && !opts) opts = init
+
+  if (opts) {
+    if (isFn(opts.init)) this._init = opts.init
+    if (isFn(opts.chunk)) this._chunk = opts.chunk
+  }
+
+  stream.Readable.call(this, opts)
 
   var ready = (err, rs) => {
     this._rs = rs
@@ -41,9 +53,6 @@ function Readsy (init, opts) {
     this._forward()
   }
 
-  this._drained = true
-  this._forwarding = false
-
   if (isFn(init)) {
     var rs = init(ready)
     if (isStream(rs)) ready(null, rs)
@@ -57,10 +66,15 @@ function Readsy (init, opts) {
 util.inherits(Readsy, stream.Readable)
 
 Readsy.obj = function (init, opts) {
-  if (!opts) opts = {}
+  if (init && !isFn(init)) opts = init
+  else if (!opts) opts = {}
   opts.objectMode = true
   opts.highWaterMark = 16
   return new Readsy(init, opts)
+}
+
+Readsy.prototype._chunk = function (data) {
+  return data
 }
 
 Readsy.prototype._read = function () {
@@ -73,7 +87,7 @@ Readsy.prototype._forward = function () {
   this._forwarding = true
 
   var data
-  while (this._drained && (data = shift(this._rs2)) !== null) {
+  while (this._drained && (data = this._chunk(shift(this._rs2))) !== null) {
     if (this.destroyed) continue
     this._drained = this.push(data)
   }
